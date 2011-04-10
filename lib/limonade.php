@@ -1172,6 +1172,15 @@ function request_uri($env = null)
   return rawurldecode($uri);
 }
 
+/**
+ * Request referer as defined by the server.
+ *
+ * @return boolean
+ */
+function request_referer()
+{
+  return isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
+}
 
 /**
  * Checks if request was made via an AJAX call.
