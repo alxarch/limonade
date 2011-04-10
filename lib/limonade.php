@@ -1173,6 +1173,25 @@ function request_uri($env = null)
 }
 
 
+/**
+ * Checks if request was made via an AJAX call.
+ *
+ * @param string $post A POST variable name to check for pseudo_ajax calls. 
+ * @return boolean
+ */
+function request_is_ajax($post = null)
+{
+  if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+           $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')
+  {
+    return true;
+  }
+  
+  if($post)
+  {
+    return isset($_POST[$post]) && $_POST[$post];
+  }
+}
 
 
                                      # # #
