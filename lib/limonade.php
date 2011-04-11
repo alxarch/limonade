@@ -653,6 +653,9 @@ function event($event, $callback = null, $args = array())
 /**
  * Extras manager.
  *
+ * @todo fix this mechanism so it can handle extras requiring other extras.
+ * @todo handle cyclic references.
+ *
  * @access private
  *
  * @param mixed $name set to true to load all extras, array for multiple extras 
@@ -660,13 +663,15 @@ function event($event, $callback = null, $args = array())
  */
 function extras($extra){
   static $extras = array();
+  static $loaded = array();
+  
   if(is_array($extra)){
     foreach($extra as $e){
       extras((string)$e);
     }
   }
   elseif(true === $extra){
-    foreach($extras as $e => $ignore){
+    foreach(array_diff_assoc($extras, $loaded) as $e => $ignore){
       $file = file_path(option('limonade_extras_dir'), 'limonade.'.$e.'.php');
       if(file_exists($file)){
         require_once($file);
@@ -674,6 +679,7 @@ function extras($extra){
         {
           call_user_func($e.'_init');
         }
+        $loaded[$e] = null;
       }
       else{
         error_notice(E_WARNING, sprintf('Requested extras file "%s" could not be found', $file));
@@ -681,7 +687,11 @@ function extras($extra){
     }
   }
   else{
-    $extras[(string)$extra] = null;
+    // protect against invalid extras name.
+    if(preg_match('/^(\w+)/', $extra, $matches)){
+      $extra = $matches[1];
+      $extras[$extra] = null;
+    }
   }
   
   return $extras;
