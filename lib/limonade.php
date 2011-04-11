@@ -318,8 +318,6 @@ function run($env = null)
 {
   if(is_null($env)) $env = env();
    
-  event('options.before', true, array($env));
-
   # 0. Set default configuration
   $root_dir  = ROOT_DIR;
   $base_path = dirname(file_path($env['SERVER']['SCRIPT_NAME']));
@@ -330,6 +328,7 @@ function run($env = null)
   option('base_path',          $base_path);
   option('base_uri',           $base_uri); // set it manually if you use url_rewriting
   option('limonade_dir',       file_path($lim_dir));
+  option('limonade_extras_dir',file_path($lim_dir, 'limonade', 'extras'));
   option('limonade_views_dir', file_path($lim_dir, 'limonade', 'views'));
   option('limonade_public_dir',file_path($lim_dir, 'limonade', 'public'));
   option('public_dir',         file_path($root_dir, 'public'));
@@ -350,8 +349,6 @@ function run($env = null)
                                    // X-SENDFILE: for Apache and Lighttpd v. >= 1.5,
                                    // X-LIGHTTPD-SEND-FILE: for Apache and Lighttpd v. < 1.5
   
-  event('options.after', true, array($env));
-  
   # 1. Set handlers
   # 1.1 Set error handling
   ini_set('display_errors', 1);
@@ -359,7 +356,11 @@ function run($env = null)
   
   # 1.2 Register shutdown function
   register_shutdown_function('stop_and_exit');
-
+  
+  # 1.3 Load extras
+  
+  extras(true);
+  
   # 2. Set user configuration
   event('configure.before', true, array($env));
   call_if_exists('configure');
@@ -649,6 +650,51 @@ function event($event, $callback = null, $args = array())
   
 }
 
+/**
+ * Extras manager.
+ *
+ * @access private
+ *
+ * @param mixed $name set to true to load all extras, array for multiple extras 
+ * @return array $extras the list of extras to load
+ */
+function extras($extra){
+  static $extras = array();
+  if(is_array($extra)){
+    foreach($extra as $e){
+      extras((string)$e);
+    }
+  }
+  elseif(true === $extra){
+    foreach($extras as $e => $ignore){
+      $file = file_path(option('limonade_extras_dir'), 'limonade.'.$e.'.php');
+      if(file_exists($file)){
+        require_once($file);
+        if(function_exists($e.'_init'))
+        {
+          call_user_func($e.'_init');
+        }
+      }
+      else{
+        error_notice(E_WARNING, sprintf('Requested extras file "%s" could not be found', $file));
+      }
+    }
+  }
+  else{
+    $extras[(string)$extra] = null;
+  }
+  
+  return $extras;
+}
+
+/**
+ * Shortcut function for @see{extras()} for naming consistency.
+ *
+ * @param string $name the name of the extra to use
+ */
+function use_extra($name){
+  extras((string) $name); 
+}
 
                                      # # #
 
