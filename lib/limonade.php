@@ -317,7 +317,7 @@ function run($env = null)
 {
   if(is_null($env)) $env = env();
    
-  event('options.before', true, $env);
+  event('options.before', true, array($env));
 
   # 0. Set default configuration
   $root_dir  = dirname(app_file());
@@ -346,7 +346,7 @@ function run($env = null)
                                    // X-SENDFILE: for Apache and Lighttpd v. >= 1.5,
                                    // X-LIGHTTPD-SEND-FILE: for Apache and Lighttpd v. < 1.5
   
-  event('options.after', true, $env);
+  event('options.after', true, array($env));
   
   # 1. Set handlers
   # 1.1 Set error handling
@@ -357,9 +357,9 @@ function run($env = null)
   register_shutdown_function('stop_and_exit');
 
   # 2. Set user configuration
-  event('configure.before', true, $env);
+  event('configure.before', true, array($env));
   call_if_exists('configure');
-  event('configure.after', true, $env);
+  event('configure.after', true, array($env));
   
   # 2.1 Set gzip compression if defined
   if(is_bool(option('gzip')) && option('gzip'))
@@ -372,7 +372,7 @@ function run($env = null)
 
   # 3. Loading libs
   require_once_dir(option('lib_dir'));
-  event('libs.after', true, $env);
+  event('libs.after', true, array($env));
 
   # 4. Starting session
   if(!defined('SID') && option('session'))
@@ -380,7 +380,7 @@ function run($env = null)
     if(!is_bool(option('session'))) session_name(option('session'));
     if(!session_start()) trigger_error("An error occured while trying to start the session", E_USER_WARNING);
   }
-  event('session.after', true, $env);
+  event('session.after', true, array($env));
 
   # 5. Set some default methods if needed
   if(!function_exists('after'))
@@ -398,9 +398,9 @@ function run($env = null)
     }
   }
 
-  event('initialize.before', true, $env);
+  event('initialize.before', true, array($env));
   call_if_exists('initialize');
-  event('initialize.after', true, $env);
+  event('initialize.after', true, array($env));
 
   # 6. Check request
   if($rm = request_method($env))
@@ -424,27 +424,27 @@ function run($env = null)
         }
       }
       
-      event('controller_autoload.before', true, $env, $route);
+      event('controller_autoload.before', true, array($env, $route));
       autoload_controller($route['callback']);
-      event('controller_autoload.after', true, $env, $route);
+      event('controller_autoload.after', true, array($env, $route));
 
       if(is_callable($route['callback']))
       {
         # 6.3 Call before function
         
-        event('before.before', true, $env, $route);
+        event('before.before', true, array($env, $route));
         call_if_exists('before', $route);
-        event('before.after', true, $env, $route);
+        event('before.after', true, array($env, $route));
 
         # 6.4 Call matching controller function and output result
-        event('render.before', true, $env, $route);
+        event('render.before', true, array($env, $route));
         $output = call_user_func_array($route['callback'], array_values($route['params']));
         if(is_null($output)) $output = call_if_exists('autorender', $route);
-        event('render.after', true, $env, $route, &$output);
+        event('render.after', true, array($env, $route, &$output));
 
-        event('after.before', true, $env, $route, &$output);
+        event('after.before', true, array($env, $route, &$output));
         $output = after(error_notices_render() . $output, $route);
-        event('after.after', true, $env, $route, &$output);
+        event('after.after', true, array($env, $route, &$output));
         echo $output;
       }
       else halt(SERVER_ERROR, "Routing error: undefined function '{$route['callback']}'", $route);      
@@ -566,6 +566,7 @@ function app_file()
 }
 
 
+
 /*
  * Simplistic event handler.
  *
@@ -581,7 +582,7 @@ function app_file()
  * event(array('event_1' => 'callback', 'event_2' => array('callback', 'callback_2')));
  *
  * //Fires an event with arguments arg_1, arg2, ..., arg_n.
- * event('event', true, arg_1, arg_2, ..., arg_n);
+ * event('event', true, array(arg_1, arg_2, ..., arg_n));
  *
  * //Clears an event queue.
  * event('event', false);
@@ -593,7 +594,7 @@ function app_file()
  *
  * @return void
  */
-function event($event, $callback = null)
+function event($event, $callback = null, $args = array())
 {
   static $events = array();
   
@@ -617,12 +618,12 @@ function event($event, $callback = null)
   
   if(true === $callback)
   {
-    $callback_args = array_slice(func_get_args(), 2);
+    
     foreach($events[$event] as $callback => $_)
     {
       if(function_exists($callback))
       {
-        call_user_func_array($callback, array_force($callback_args));
+        call_user_func_array($callback, array_force($args));
       }
     }
   }  
