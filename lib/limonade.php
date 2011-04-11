@@ -706,6 +706,26 @@ function use_extra($name){
   extras((string) $name); 
 }
 
+function use_helper($name){
+  $file = file_path(option('helpers_dir'), $name.'.helper.php');
+  if(file_exists($file)){
+    require_once($file);
+  }
+  else{
+    error_notice( E_WARNING, sprintf('Helper file "%s" not found.', $file ));
+  }
+}
+
+function use_model($name){
+  $file = file_path(option('models_dir'), $name.'.model.php');
+  if(file_exists($file)){
+    require_once($file);
+  }
+  else{
+    error_notice( E_WARNING, sprintf('Model file "%s" not found.', $file ));
+  }
+}
+
                                      # # #
 
 
