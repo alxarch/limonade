@@ -77,6 +77,7 @@ if(!defined('E_USER_DEPRECATED'))    define('E_USER_DEPRECATED',   16384);
 # for PHP 5.2.0 <
 if (!defined('E_RECOVERABLE_ERROR')) define('E_RECOVERABLE_ERROR', 4096);
 
+if(!defined('ROOT_DIR'))             define('ROOT_DIR', dirname(app_file())); 
 
 ## SETTING BASIC SECURITY _____________________________________________________
 
@@ -320,7 +321,7 @@ function run($env = null)
   event('options.before', true, array($env));
 
   # 0. Set default configuration
-  $root_dir  = dirname(app_file());
+  $root_dir  = ROOT_DIR;
   $base_path = dirname(file_path($env['SERVER']['SCRIPT_NAME']));
   $base_file = basename($env['SERVER']['SCRIPT_NAME']);
   $base_uri  = file_path($base_path, (($base_file == 'index.php') ? '?' : $base_file.'?'));
