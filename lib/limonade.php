@@ -335,6 +335,9 @@ function run($env = null)
   option('public_dir',         file_path($root_dir, 'public'));
   option('views_dir',          file_path($root_dir, 'views'));
   option('controllers_dir',    file_path($root_dir, 'controllers'));
+  option('data_dir', 		   file_path($root_dir, 'data'));
+  option('models_dir',         file_path($root_dir, 'models'));
+  option('helpers_dir',        file_path($root_dir, 'helpers'));
   option('lib_dir',            file_path($root_dir, 'lib'));
   option('error_views_dir',    option('limonade_views_dir'));
   option('env',                ENV_PRODUCTION);
