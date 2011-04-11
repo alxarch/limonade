@@ -1565,6 +1565,27 @@ function route_find($method, $path)
 }
 
 
+/**
+ * Simplistic CRUD routes generation.
+ *
+ * Action names ({model}_{action}):
+ *   - new
+ *   - create
+ *   - edit
+ *   - update
+ *   - delete
+ *
+ * @param string $model The route name
+ * @param string $prefix Route prefix
+ */
+function dispatch_crud($model, $prefix=null){
+  $prefix = (null === $prefix) ? '/' : '/'.$prefix.'/';
+  dispatch($prefix.$model.'/new', $model.'_new');
+  dispatch_put($prefix.$model.'/:id/update', $model.'_update');
+  dispatch_post($prefix.$model.'/create', $model.'_create');
+  dispatch($prefix.$model.'/:id/edit', $model.'_edit');
+  dispatch_delete($prefix.$model.'/:id/delete', $model.'_delete');
+}
 
 
 
