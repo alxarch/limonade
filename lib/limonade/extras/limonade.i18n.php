@@ -64,7 +64,12 @@ function i18n_languages()
 {
   if(func_num_args())
   {
-    option('i18n.languages', func_get_args());
+    $langs = array();
+    foreach(func_get_args() as $arg){
+      $langs[] = (string) $arg;
+    };
+    
+    option('i18n.languages', array_unique(array_filter($langs)));
   }
   
   return option('i18n.languages');
